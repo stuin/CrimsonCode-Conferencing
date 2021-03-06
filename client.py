@@ -34,14 +34,16 @@ def chat_client():
         for sock in ready_to_read:
             if sock == s:
                 # incoming message from remote server, s
-                data = sock.recv(4096)
+                data = sock.recv(4096).decode()
                 if not data :
                     print('\nDisconnected from chat server')
                     sys.exit()
-                else :
+                if data[0] == "\r":
                     #print data
-                    sys.stdout.write(data.decode())
+                    sys.stdout.write(data)
                     sys.stdout.write('[Me] '); sys.stdout.flush()
+                else:
+                    print("\rSystem message\n[Me] ")
 
             else :
                 # user entered a message
@@ -50,5 +52,8 @@ def chat_client():
                 sys.stdout.write('[Me] '); sys.stdout.flush()
 
 if __name__ == "__main__":
-
-    sys.exit(chat_client())
+    try:
+        sys.exit(chat_client())
+    except KeyboardInterrupt:
+        print('Interrupted')
+        sys.exit(0)

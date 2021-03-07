@@ -108,12 +108,12 @@ class MainView(Frame):
 			for user in self.model.users:
 				if p[0] == user.name:
 					self.model.add_message("{Kicked %s}" % p[0])
-					self.send.put('OK%d$' % user.index)
+					self.model.send.put('OK%d$' % user.index)
 
 	def say(self, p):
 		if self.model.me.op:
 			self.model.add_message("[SERVER] " + ' '.join(p))
-			self.send.put("C-1&[SERVER] %s$" % ' '.join(p))
+			self.model.send.put("C-1&[SERVER] %s$" % ' '.join(p))
 
 	def help(self, a):
 		self.model.help = True

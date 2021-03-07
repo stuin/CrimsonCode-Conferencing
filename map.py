@@ -12,6 +12,7 @@ class Map(object):
 		self.doors = {}
 		self.rooms = []
 		self.blocked = ['#', '>']
+		self.content = ''
 		if content:
 			self.read_map(content)
 

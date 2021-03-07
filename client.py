@@ -2,80 +2,79 @@
 
 import sys
 import socket
-import select
 import threading
 import time
 
 from user import User
-from map import Map
+from model import DataModel
 import display
 
-hall = Map()
-all_users = {}
+model = DataModel()
 waiting = True
+running = True
+
+def start(host, port, name):
+	t1=threading.Thread(target=run_client, args=(host, port, name))
+	t1.start()
+	while waiting:
+		time.sleep(1)
+
+	print("Connected")
+	display.start_display(model)
+
+	global running
+	running = False
+	return
 
 def run_client(host, port, name):
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.settimeout(2)
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	sock.settimeout(2)
 
-	me = None
-	global hall
-	global all_users
+	global model
 	global waiting
 
 	# connect to remote host
 	try:
-		s.connect((host, port))
+		sock.connect((host, port))
 	except:
 		print('Unable to connect')
 		sys.exit()
 
-	print(name + ' connected to server')
-	s.send(('@' + name).encode())
-	sys.stdout.write('[Me] '); sys.stdout.flush()
+	model.add_message(name + ' connected to server')
+	sock.settimeout(2)
+	sock.send(('@' + name).encode())
 
-	while 1:
-		socket_list = [s]
-
-		# Get the list sockets which are readable
-		ready_to_read,ready_to_write,in_error = select.select(socket_list , [], [])
-
-		for sock in ready_to_read:
-			if sock == s:
-				# incoming message from remote server, s
-				data = sock.recv(4096).decode()
-				print(data[0])
-				if not data:
-					print('\nDisconnected from chat server')
-					sys.exit()
-				elif data[0] == "\r":
-					# print message
-					sys.stdout.write(data)
-					sys.stdout.write('[Me] '); sys.stdout.flush()
-				elif data[0] == "J":
-					# add user
-					user = User(data[1:])
-					all_users[user.name] = user
-					print("\r<%s Entered the room>" % user.name)
-					sys.stdout.write('[Me] '); sys.stdout.flush()
-				elif data[0] == "L":
-					# remove user
-					del all_users[data[1:]]
-					print("\r<%s Left the room>" % data[1:])
-					sys.stdout.write('[Me] '); sys.stdout.flush()
-				elif data[0] == "D" and me == None:
-					# load map details
-					hall.deserialize(data)
-					me = User(name, hall.startPos)
-					all_users[name] = me
-					waiting = False
-				else:
-					print("\rSystem message\n" + data)
-			else:
-				# user entered a message
-				msg = sys.stdin.readline()
-				s.send(msg.encode())
-				sys.stdout.write('[Me] '); sys.stdout.flush()
+	while running:
+		# incoming message from remote server, s
+		try:
+			data = sock.recv(4096).decode()
+			if not data:
+				model.add_message('<Disconnected from server>')
+				return
+			if data[0] == "[":
+				# print message
+				model.add_message(data)
+			elif data[0] == "U":
+				for u in data.split("U"):
+					if len(u) > 0:
+						# add user
+						user = User(u)
+						model.users[user.index] = user
+			elif data[0] == "J":
+				user = User(data[1:])
+				model.users[user.index] = user
+				model.add_message("<%s Entered the room>" % user.name)
+			elif data[0] == "L":
+				# remove user
+				del model.users[data[1:]]
+				model.add_message("<%s Left the room>" % data[1:])
+			elif data[0] == "D" and waiting:
+				# load map details
+				model.hall.deserialize(data)
+				waiting = False
+		except socket.timeout:
+			while not model.send.empty():
+				sock.send(("[%s] " % name + model.send.get()).encode())
 
 if __name__ == "__main__":
 	try:
@@ -84,14 +83,8 @@ if __name__ == "__main__":
 			sys.exit()
 
 		#name = input('Enter username: ')
-
-		t1=threading.Thread(target=run_client, args=(sys.argv[1], 1234, sys.argv[2]))
-		t1.start()
-		while waiting:
-			time.sleep(1)
-			print("Start display")
-		display.start_display(hall, all_users)
-		sys.exit()
+		start(sys.argv[1], 1234, sys.argv[2])
+		sys.exit(0)
 	except KeyboardInterrupt:
 		print('\nInterrupted')
 		sys.exit(0)

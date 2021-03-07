@@ -53,7 +53,7 @@ def run_server():
 					data = sock.recv(RECV_BUFFER).decode()
 					if data and addr in all_users:
 						# there is something in the socket
-						broadcast(server_socket, sock, room[all_users[addr].room], "\r[%s] " % all_users[addr].name + data)
+						broadcast(server_socket, sock, room[all_users[addr].room], data)
 					elif data:
 						# add user
 						user = User(data[1:], hall.startPos)
@@ -62,6 +62,8 @@ def run_server():
 						room[0].append(user)
 
 						print("Client (%s, %s) set name to" % addr, data)
+						for u in room[0]:
+							sockfd.send(("U" + u.serialize()).encode())
 						broadcast(server_socket, sockfd, room[0], "J" + user.serialize())
 					else:
 						# remove the socket that's broken
@@ -74,7 +76,7 @@ def run_server():
 						del all_users[addr]
 
 						print("\rClient @%s Lost connection" % user.name)
-						broadcast(server_socket, room[user.room], "L" + user.name)
+						broadcast(server_socket, room[user.room], "L" + user.index)
 
 				# exception
 				except:
@@ -85,7 +87,7 @@ def run_server():
 						del all_users[addr]
 
 						print("\rClient @%s Lost connection" % user.name)
-						broadcast(server_socket, sock, room[all_users[addr].room], "L" + all_users[addr].name)
+						broadcast(server_socket, sock, room[all_users[addr].room], "L" + all_users[addr].index)
 					else:
 						print("\rClient (%s, %s) Lost connection" % addr)
 					continue

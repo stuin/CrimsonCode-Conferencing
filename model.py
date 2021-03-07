@@ -1,17 +1,36 @@
+import queue
+from map import Map
+
 class DataModel(object):
 	def __init__(self):
-		self.map = None
-		self.users = None
+		self.send = queue.Queue()
+		self.hall = Map()
+		self.users = {}
+		self.log = []
+		self.i = 0
 
-	def setup(self, map, users):
-		self.map = map
-		self.users = users
+	def copy(self, other):
+		self.hall = other.hall
+		self.users = other.users
+		self.log = other.log
 
 	def get_users(self):
 		return [ (user.name, user.index) for user in self.users.values() ]
 
+	def get_messages(self):
+		return self.log
+
 	def get_map(self):
-		return self.map.content
+		return self.hall.content
 
 	def get_height(self):
-		return len(self.map.content)
+		return len(self.hall.content)
+
+	def add_message(self, message):
+		self.log.append((message, self.i))
+		self.i += 1
+
+	def send_message(self, message):
+		self.add_message("[Me] " + message)
+		self.send.put(message)
+

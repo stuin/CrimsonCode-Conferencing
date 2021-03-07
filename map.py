@@ -60,10 +60,10 @@ class Map(object):
 		return output
 
 	def serialize(self):
-		return ('D' + str(self.doors) + '$' + str(self.rooms) + '$' + self.content).encode()
+		return ('D' + str(self.doors) + '&' + str(self.rooms) + '&' + self.content + "$").encode()
 
 	def deserialize(self, data):
-		data = data[1:].split('$')
+		data = data[1:].split('&')
 		self.doors = ast.literal_eval(data[0])
 		self.rooms = ast.literal_eval(data[1])
 		self.width = data[2].find('\n') + 1

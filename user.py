@@ -1,6 +1,8 @@
 import ast
+import re
 
 i = 0
+validreg = re.compile('[ a-zA-Z0-9_?!,./@]+\n')
 
 class User(object):
 	def __init__(self, data, pos=None):

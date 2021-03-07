@@ -9,7 +9,7 @@ SOCKET_LIST = []
 RECV_BUFFER = 4096
 PORT = 1234
 
-from user import User
+from user import User, validreg
 from map import Map
 
 def run_server():
@@ -28,10 +28,6 @@ def run_server():
 
 	# prepare list for users
 	all_users = {}
-	room = []
-	for r in hall.rooms:
-		room.append([])
-
 	print("Server started on port", PORT)
 
 	while 1:
@@ -50,35 +46,35 @@ def run_server():
 				# process data recieved from client,
 				try:
 					# receiving data from the socket.
-					data = sock.recv(RECV_BUFFER).decode()
-					if data and addr in all_users:
-						if data[0] == 'M':
-							all_users[addr].pos = int(data.split(':')[1])
-							r = int(data.split(':')[2])
-							# change room
-							if r != all_users[addr].room:
-								user = all_users[addr]
-								room[user.room].remove(user)
-								room[r].append(user)
-								user.room = r
-						broadcast(server_socket, sock, room[all_users[addr].room], data)
-					elif data:
+					dataset = sock.recv(RECV_BUFFER).decode()
+					if dataset and addr in all_users:
+						for data in dataset.split("$"):
+							if len(data) > 0 and data[0] == 'M':
+								all_users[addr].pos = int(data.split('&')[1])
+								r = int(data.split('&')[2])
+								i = int(data.split('&')[0][1:])
+
+								# change room
+								if r != all_users[addr].room and i == all_users[addr].index:
+									all_users[addr].room = r
+									print("Client @%s moved to %s" % (user.name, hall.rooms[user.room]))
+							broadcast(server_socket, sock, all_users, data)
+					elif dataset:
 						# add user
-						user = User(data[1:], hall.startPos)
+						user = User(dataset[1:].split('$')[0], hall.startPos)
 						if addr in all_users.keys():
 							del all_users[addr]
 
-						if user.name in [ u.name for u in all_users.values() ]:
-							sockfd.send("N".encode())
+						if not validreg.fullmatch(user.name + "\n") and user.name in [ u.name for u in all_users.values() ]:
+							sockfd.send("N$".encode())
 						else:
 							user.socket = sockfd
 							all_users[addr] = user
-							room[0].append(user)
 
-							print("Client (%s, %s) set name to" % addr, data)
+							print("Client (%s, %s) set name to" % addr, user.name)
 							for u in all_users.values():
-								sockfd.send(("U" + u.serialize()).encode())
-							broadcast(server_socket, sockfd, room[0], "J" + user.serialize())
+								sockfd.send(("U" + u.serialize() + '$').encode())
+							broadcast(server_socket, sockfd, all_users, "J" + user.serialize())
 					else:
 						# remove the socket that's broken
 						if sock in SOCKET_LIST:
@@ -86,23 +82,20 @@ def run_server():
 
 						# remove user from lists
 						user = all_users[addr]
-						room[user.room].remove(user)
 						del all_users[addr]
 
 						print("\rClient @%s Lost connection" % user.name)
-						broadcast(server_socket, room[user.room], "L" + user.index)
+						broadcast(server_socket, None, all_users, "L" + str(user.index))
 
 				# exception
 				except:
 					if addr in all_users:
 						# remove user from lists
 						user = all_users[addr]
-						if user in room[user.room]:
-							room[user.room].remove(user)
 						del all_users[addr]
 
 						print("\rClient @%s Lost connection" % user.name)
-						broadcast(server_socket, sock, room[all_users[addr].room], "L" + all_users[addr].index)
+						broadcast(server_socket, sock, all_users, "L" + str(user.index))
 					else:
 						print("\rClient (%s, %s) Lost connection" % addr)
 					continue
@@ -110,13 +103,13 @@ def run_server():
 	server_socket.close()
 
 # broadcast chat messages to all connected clients
-def broadcast (server_socket, sock, room, message):
-	for user in room:
+def broadcast (server_socket, sock, users, message):
+	for user in users.values():
 		socket = user.socket
 		# send the message only to peer
 		if user.socket != sock:
 			try:
-				socket.send(str.encode(message))
+				socket.send(str.encode(message + '$'))
 			except:
 				# broken socket connection
 				socket.close()

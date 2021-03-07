@@ -41,57 +41,66 @@ def run_client(host, port, name):
 		sys.exit()
 
 	sock.settimeout(2)
-	sock.send(('@' + name).encode())
+	sock.send(('@' + name + '$').encode())
 
 	while running:
 		# incoming message from remote server, s
 		try:
-			data = sock.recv(4096).decode()
-			if not data:
+			dataset = sock.recv(4096).decode()
+			if not dataset:
 				model.add_message('<Disconnected>')
+				model.quit = True
 				return
-			if data[0] == "[":
-				# print message
-				model.add_message(data)
-			elif data[0] == 'M':
-				data = data.split(':')
-				i = int(data[0][1:])
-				model.users[i].pos = int(data[1])
-				model.users[i].room = int(data[2])
-			elif data[0] == 'N':
-				print('That name is already taken')
-				name = input('Try a different name: ')
-				sock.send(('@' + name).encode())
-			elif data[0] == "J":
-				user = User(data[1:])
-				model.users[user.index] = user
-				model.dirty = True
-				model.add_message("<%s Joined the server>" % user.name)
-			elif data[0] == "U":
-				for u in data.split("U"):
-					if len(u) > 0:
-						# add user
-						user = User(u)
-						model.users[user.index] = user
-						if user.name == name and model.me == None:
-							model.add_message(name + ' connected to server')
-							model.me = user
-							waiting -= 1
-			elif data[0] == "L":
-				# remove user
-				del model.users[data[1:]]
-				model.dirty = True
-				model.add_message("<%s Left the server>" % data[1:])
-			elif data[0] == "D" and waiting:
-				# load map details
-				model.hall.deserialize(data)
-				waiting -= 1
+
+			for data in dataset.split('$'):
+				if len(data) == 0:
+					continue
+				elif data[0] == "C":
+					# print message
+					if int(data.split('&')[0][1:]) == model.me.room:
+						model.add_message(data.split('&')[1])
+				elif data[0] == 'M':
+					# move user
+					data = data.split('&')
+					i = int(data[0][1:])
+					model.users[i].pos = int(data[1])
+					model.users[i].room = int(data[2])
+				elif data[0] == 'N':
+					# change username
+					print('That name is invalid or already taken')
+					name = input('Try a different name: ')
+					sock.send(('@' + name).encode())
+				elif data[0] == "J":
+					# add user
+					user = User(data[1:])
+					model.users[user.index] = user
+					model.refresh()
+					model.add_message("<%s Joined the server>" % user.name)
+				elif data[0] == "U":
+					# add existing users
+					user = User(data[1:])
+					model.users[user.index] = user
+					if user.name == name and model.me == None:
+						model.add_message(name + ' connected to server')
+						model.me = user
+						waiting -= 1
+					model.refresh()
+				elif data[0] == "L":
+					# remove user
+					del model.users[data[1:]]
+					model.refresh()
+					model.add_message("<%s Left the server>" % data[1:])
+				elif data[0] == "D" and waiting:
+					# load map details
+					model.hall.deserialize(data)
+					waiting -= 1
 		except socket.timeout:
 			while not model.send.empty():
-				sock.send(("[%s] " % name + model.send.get()).encode())
+				sock.send(("C%d&[%s] %s$" % (model.me.room, name, model.send.get())).encode())
 			if model.moved:
-				sock.send(("M%d:%d:%d" % (model.me.index, model.me.pos, model.me.room)).encode())
-
+				sock.send(("M%d&%d&%d$" % (model.me.index, model.me.pos, model.me.room)).encode())
+	model.add_message('<Disconnected>')
+	model.quit = True
 
 if __name__ == "__main__":
 	try:

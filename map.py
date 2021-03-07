@@ -2,8 +2,8 @@ import ast
 from enum import IntEnum
 
 class DIRECTION(IntEnum):
-	UP = -1
-	DOWN = 1
+	UP = -2
+	DOWN = 2
 	LEFT = -1
 	RIGHT = 1
 
@@ -14,7 +14,10 @@ class Map(object):
 		self.blocked = ['#', '>']
 		self.content = ''
 		if content:
-			self.read_map(content)
+			self.width = max([ len(s) for s in content ])
+			content = [(x + ' ' * (self.width - len(x))) for x in content]
+			self.content = ''.join(content)
+			self.startPos = self.content.find('>') + 1
 
 	def pos(self, x, y):
 		return (y * self.width + x)
@@ -31,21 +34,30 @@ class Map(object):
 		if dir == DIRECTION.LEFT or dir == DIRECTION.RIGHT:
 			to += dir.value
 		else:
-			to += dir.value * self.width
+			to += int(dir.value / 2 * self.width)
 
-		if self.content.get(to) in blocked:
+		if self.content[to] in self.blocked:
 			return False
 
-		if self.content.get(user.pos) == '-' and user.pos in self.doors:
-			if to > user.pos:
+		if self.content[user.pos] == '-' and user.pos in self.doors:
+			r = user.room
+			if to < user.pos:
 				user.room = self.doors[user.pos][1]
 			else:
 				user.room = self.doors[user.pos][0]
+			if user.room != r:
+				user.changed = 2
 			user.pos = to
 			return True
 
 		user.pos = to
-		return False
+		return True
+
+	def draw(self, users):
+		output = self.content
+		for u in users.values():
+			output = output[:u.pos] + u.avatar[0] + output[u.pos + 1:]
+		return output
 
 	def serialize(self):
 		return ('D' + str(self.doors) + '$' + str(self.rooms) + '$' + self.content).encode()
@@ -53,13 +65,9 @@ class Map(object):
 	def deserialize(self, data):
 		data = data[1:].split('$')
 		self.doors = ast.literal_eval(data[0])
-		self.rooms = list(data[1])
-		self.read_map(data[2])
-
-	def read_map(self, content):
-		self.width = max([ len(s) for s in content ])
-		content = [(x + ' ' * (self.width - len(x))) for x in content]
-		self.content = ''.join(content)
+		self.rooms = ast.literal_eval(data[1])
+		self.width = data[2].find('\n') + 1
+		self.content = data[2]
 		self.startPos = self.content.find('>') + 1
 
 	# default map setup
@@ -77,9 +85,9 @@ class Map(object):
 			self.add_door(x, 16, 0, 3)
 
 		# side rooms
-		self.add_door(30, 14, 3, 4)
-		self.add_door(30, 10, 3, 5)
-		self.add_door(30,  6, 3, 6)
+		self.add_door(30, 14, 4, 3)
+		self.add_door(30, 10, 5, 3)
+		self.add_door(30,  6, 6, 3)
 
 
 

@@ -5,6 +5,7 @@ i = 0
 class User(object):
 	def __init__(self, data, pos=None):
 		global i
+		self.changed = 0
 		if pos is None:
 			data = ast.literal_eval(data)
 			self.name = data[0]

@@ -6,13 +6,13 @@ class DataModel(object):
 		self.send = queue.Queue()
 		self.hall = Map()
 		self.users = {}
+		self.me = None
 		self.log = []
 		self.i = 0
 
-	def copy(self, other):
-		self.hall = other.hall
-		self.users = other.users
-		self.log = other.log
+		# boolean flags
+		self.moved = False
+		self.dirty = False
 
 	def get_users(self):
 		return [ (user.name, user.index) for user in self.users.values() ]
@@ -21,7 +21,7 @@ class DataModel(object):
 		return self.log
 
 	def get_map(self):
-		return self.hall.content
+		return self.hall.draw(self.users)
 
 	def get_height(self):
 		return len(self.hall.content)
@@ -33,4 +33,11 @@ class DataModel(object):
 	def send_message(self, message):
 		self.add_message("[Me] " + message)
 		self.send.put(message)
+
+	def add_move(self, direction):
+		if self.me and self.hall.move(self.me, direction):
+			if self.me.changed:
+				self.add_message('<Moved to %s>' % self.hall.rooms[self.me.room])
+				self.me.changed = False
+			self.moved = True
 

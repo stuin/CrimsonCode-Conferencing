@@ -6,13 +6,15 @@ import select
 
 from user import User
 from map import Map
+import display
 
-def chat_client(host, port, name):
+def run_client(host, port, name):
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.settimeout(2)
 
 	me = None
 	hall = None
+	all_users = {}
 
 	# connect to remote host
 	try:
@@ -39,16 +41,31 @@ def chat_client(host, port, name):
 					print('\nDisconnected from chat server')
 					sys.exit()
 				elif data[0] == "\r":
-					#print data
+					# print message
 					sys.stdout.write(data)
 					sys.stdout.write('[Me] '); sys.stdout.flush()
+				elif data[0] == "J":
+					# add user
+					user = User(data[1:])
+					all_users[user.name] = user
+					print("\r<%s Entered the room>" % user.name)
+					sys.stdout.write('[Me] '); sys.stdout.flush()
+				elif data[0] == "L":
+					# remove user
+					del all_users[data[1:]]
+					print("\r<%s Left the room>" % data[1:])
+					sys.stdout.write('[Me] '); sys.stdout.flush()
 				elif data[0] == "M" and hall == None:
+					# load map
 					hall = Map(data[1:])
 					me = User(name, hall.startPos)
+					all_users[name] = me
 				elif data[0] == "D" and hall != None:
+					# load map details
 					hall.deserialize(data)
+					display.start_display(hall, all_users)
 				else:
-					print("\rSystem message\n" + data + "\n[Me] ")
+					print("\rSystem message\n" + data)
 			else:
 				# user entered a message
 				msg = sys.stdin.readline()
@@ -63,7 +80,7 @@ if __name__ == "__main__":
 
 		#name = input('Enter username: ')
 
-		sys.exit(chat_client(sys.argv[1], 1234, sys.argv[2]))
+		sys.exit(run_client(sys.argv[1], 1234, sys.argv[2]))
 	except KeyboardInterrupt:
 		print('\nInterrupted')
 		sys.exit(0)

@@ -16,3 +16,5 @@ pip install asciimatics
 
 python client.py <url> <username>
 ```
+
+Go to help.txt or type help in chat to learn more.

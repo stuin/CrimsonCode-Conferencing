@@ -45,7 +45,7 @@ class DataModel(object):
 		return len(self.hall.content.split('\n'))
 
 	def add_message(self, message):
-		if len(self.log) > self.log_height - 1:
+		if len(self.log) > self.log_height - 2:
 			self.log = self.log[1:]
 		self.log.append((message, self.i))
 		self.i += 1
@@ -56,7 +56,6 @@ class DataModel(object):
 
 	def add_move(self, direction):
 		if self.me and self.hall.move(self.me, direction):
-			self.refresh()
 			if self.me.changed:
 				self.add_message('<Moved to %s>' % self.hall.rooms[self.me.room])
 				self.me.changed = False

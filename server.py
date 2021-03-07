@@ -60,14 +60,17 @@ def run_server():
 								if r != all_users[addr].room and i == all_users[addr].index:
 									all_users[addr].room = r
 									print("Client @%s moved to %s" % (user.name, hall.rooms[user.room]))
-							broadcast(server_socket, sock, all_users, data)
+								broadcast(server_socket, sock, all_users, data)
+							elif len(data) > 0:
+								print(data[:-1])
+								broadcast(server_socket, sock, all_users, data)
 					elif dataset:
 						# add user
 						user = User(dataset[1:].split('$')[0], hall.startPos)
 						if addr in all_users.keys():
 							del all_users[addr]
 
-						if not validreg.fullmatch(user.name + "\n") and user.name in [ u.name for u in all_users.values() ]:
+						if not validreg.fullmatch(user.name + "\n") or user.name in [ u.name for u in all_users.values() ]:
 							sockfd.send("N$".encode())
 						else:
 							user.socket = sockfd

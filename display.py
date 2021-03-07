@@ -82,13 +82,16 @@ class MainView(Frame):
 		self.model.log_height = self._message_list._h
 
 	def _check_input(self):
-		if len(self._input_box.value) > 1 and validreg.match(self._input_box.value):
-			cmd = self._input_box.value.lower()
-			if cmd in self.cmap:
-				self.cmap[cmd][0](self.cmap[cmd][1])
-			else:
-				self.model.send_message(self._input_box.value)
-			self._input_box.value = ""
+		if len(self._input_box.value) > 1:
+			if validreg.match(self._input_box.value):
+				cmd = self._input_box.value.lower()
+				if cmd in self.cmap:
+					self.cmap[cmd][0](self.cmap[cmd][1])
+				else:
+					self.model.send_message(self._input_box.value)
+				self._input_box.value = ""
+			elif self._input_box.value[-1] == '\n':
+				self._input_box.value = ""
 		self._reset()
 
 	def _check_movement(self):

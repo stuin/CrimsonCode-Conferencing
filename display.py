@@ -86,9 +86,9 @@ class MainView(Frame):
 	def _check_input(self):
 		if len(self._input_box.value) > 1:
 			if validreg.match(self._input_box.value):
-				cmd = self._input_box.value.lower()[:-1].split(' ')
-				if cmd[0] in self.cmap:
-					self.cmap[cmd[0]](cmd[1:])
+				cmd = self._input_box.value[:-1].split(' ')
+				if cmd[0].lower() in self.cmap:
+					self.cmap[cmd[0].lower()](cmd[1:])
 				else:
 					self.model.send_message(self._input_box.value)
 				self._input_box.value = ""
@@ -105,10 +105,10 @@ class MainView(Frame):
 
 	def kick(self, p):
 		if self.model.me.op and p[0] != self.model.me.name:
-			for user in self.model.users:
+			for user in self.model.users.values():
 				if p[0] == user.name:
 					self.model.add_message("{Kicked %s}" % p[0])
-					self.model.send.put('OK%d$' % user.index)
+					self.model.send.put('L%d$' % user.index)
 
 	def say(self, p):
 		if self.model.me.op:

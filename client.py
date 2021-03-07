@@ -57,7 +57,8 @@ def run_client(host, port, name):
 					continue
 				elif data[0] == "C":
 					# print message
-					if int(data.split('&')[0][1:]) == model.me.room:
+					r = int(data.split('&')[0][1:])
+					if r == model.me.room or r == -1:
 						model.add_message(data.split('&')[1])
 				elif data[0] == 'M':
 					# move user
@@ -90,8 +91,12 @@ def run_client(host, port, name):
 					# remove user
 					name = model.users[int(data[1:])].name
 					del model.users[int(data[1:])]
+
+					if name == model.me.name:
+						break
 					model.refresh()
 					model.add_message("<%s Left the server>" % name)
+
 				elif data[0] == "D" and waiting:
 					# load map details
 					model.hall.deserialize(data)

@@ -26,6 +26,12 @@ def chat_server():
 	hall = Map(mapdata)
 	hall.setup_1()
 
+	# prepare list for users
+	all_users = {}
+	room = []
+	for r in hall.rooms:
+		room.append([])
+
 	print("Server started on port", PORT)
 
 	while 1:
@@ -40,37 +46,53 @@ def chat_server():
 				sockfd.send(("M" + hall.content).encode())
 				sockfd.send(hall.serialize())
 
-				broadcast(server_socket, sockfd, "\r[%s:%s] <Entered the room>\n" % addr)
-
 			# a message from a client, not a new connection
 			else:
 				# process data recieved from client,
 				try:
 					# receiving data from the socket.
 					data = sock.recv(RECV_BUFFER).decode()
-					if data:
+					if data[0] == '@':
+						user = User(data[1:], hall.startPos)
+						user.socket = sockfd
+						all_users[addr] = user
+						room[0].append(user)
+
+						print("Client (%s, %s) set name to" % addr, data)
+						broadcast(server_socket, sockfd, room[0], "\r<%s Entered the room>\n" % user.name)
+					elif data:
 						# there is something in the socket
-						broadcast(server_socket, sock, "\r[%s:%s] " % addr + data)
+						broadcast(server_socket, sock, room[all_users[addr].room], "\r[%s] " % all_users[addr].name + data)
 					else:
 						# remove the socket that's broken
 						if sock in SOCKET_LIST:
 							SOCKET_LIST.remove(sock)
 
-						# at this stage, no data means probably the connection has been broken
-						broadcast(server_socket, sock, "\r[%s:%s] <Lost connection>\n" % addr)
+						# remove user from lists
+						user = all_users[addr]
+						room[user.room].remove(user)
+						del all_users[addr]
+
+						print("\r<%s Lost connection>\n" % user.name)
+						broadcast(server_socket, room[user.room], "\r<%s Lost connection>\n" % user.name)
 
 				# exception
 				except:
-					broadcast(server_socket, sock, "\r[%s:%s] <Lost connection>\n" % addr)
+					if addr in all_users:
+						print("\r<%s Lost connection>\n" % user.name)
+						broadcast(server_socket, sock, room[all_users[addr].room], "\r<%s Lost connection>\n" % all_users[addr].name)
+					else:
+						print("\r<(%s, %s) Lost connection>\n" % addr)
 					continue
 
 	server_socket.close()
 
 # broadcast chat messages to all connected clients
-def broadcast (server_socket, sock, message):
-	for socket in SOCKET_LIST:
+def broadcast (server_socket, sock, room, message):
+	for user in room:
+		socket = user.socket
 		# send the message only to peer
-		if socket != server_socket and socket != sock:
+		if user.socket != sock:
 			try:
 				socket.send(str.encode(message))
 			except:
@@ -84,5 +106,5 @@ if __name__ == "__main__":
 	try:
 		sys.exit(chat_server())
 	except KeyboardInterrupt:
-		print('Interrupted')
+		print('\nInterrupted')
 		sys.exit(0)

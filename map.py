@@ -1,13 +1,21 @@
 import ast
+from enum import IntEnum
+
+class DIRECTION(IntEnum):
+	UP = -1
+	DOWN = 1
+	LEFT = -1
+	RIGHT = 1
 
 class Map(object):
 	def __init__(self, content):
 		self.doors = {}
 		self.rooms = []
+		self.blocked = ['#', '>']
 		self.width = max([ len(s) for s in content ])
 		content = [(x + ' ' * (self.width - len(x))) for x in content]
 		self.content = ''.join(content)
-		self.startPos = self.content.find('>')
+		self.startPos = self.content.find('>') + 1
 
 	def pos(self, x, y):
 		return (y * self.width + x)
@@ -19,15 +27,26 @@ class Map(object):
 		else:
 			print("No door at (%d, %d) %c" % (x-1, y-1, self.content[0]))
 
-	def move(self, user, to):
-		if self.content.get(to) == '#':
+	def move(self, user, dir):
+		to = user.pos
+		if dir == DIRECTION.LEFT or dir == DIRECTION.RIGHT:
+			to += dir.value
+		else:
+			to += dir.value * self.width
+
+		if self.content.get(to) in blocked:
 			return False
-		if self.content.get(user.pos) == '-':
-			if user.pos in self.doors:
-				if to > user.pos:
-					user.room = self.doors[user.pos][1]
-				else:
-					user.room = self.doors[user.pos][0]
+
+		if self.content.get(user.pos) == '-' and user.pos in self.doors:
+			if to > user.pos:
+				user.room = self.doors[user.pos][1]
+			else:
+				user.room = self.doors[user.pos][0]
+			user.pos = to
+			return True
+
+		user.pos = to
+		return False
 
 	def serialize(self):
 		return ('D' + str(self.doors) + '\n' + str(self.rooms)).encode()
@@ -44,17 +63,17 @@ class Map(object):
 			'Side Hallway', 'Room 1', 'Room 2', 'Room 3']
 
 		# large doors
-		for x in range (12, 15):
+		for x in range (13, 16):
 			self.add_door(x, 11, 0, 1)
-		for x in range (19, 22):
+		for x in range (20, 23):
 			self.add_door(x, 16, 0, 2)
-		for x in range (26, 29):
+		for x in range (27, 30):
 			self.add_door(x, 16, 0, 3)
 
 		# side rooms
-		self.add_door(29, 14, 3, 4)
-		self.add_door(29, 10, 3, 5)
-		self.add_door(29,  6, 3, 6)
+		self.add_door(30, 14, 3, 4)
+		self.add_door(30, 10, 3, 5)
+		self.add_door(30,  6, 3, 6)
 
 
 

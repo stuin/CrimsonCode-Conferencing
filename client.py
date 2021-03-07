@@ -7,10 +7,11 @@ import select
 from user import User
 from map import Map
 
-def chat_client(host, port):
+def chat_client(host, port, name):
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.settimeout(2)
 
+	me = None
 	hall = None
 
 	# connect to remote host
@@ -20,7 +21,8 @@ def chat_client(host, port):
 		print('Unable to connect')
 		sys.exit()
 
-	print('Connected to remote host. You can start sending messages')
+	print(name + ' connected to server')
+	s.send(('@' + name).encode())
 	sys.stdout.write('[Me] '); sys.stdout.flush()
 
 	while 1:
@@ -42,25 +44,26 @@ def chat_client(host, port):
 					sys.stdout.write('[Me] '); sys.stdout.flush()
 				elif data[0] == "M" and hall == None:
 					hall = Map(data[1:])
+					me = User(name, hall.startPos)
 				elif data[0] == "D" and hall != None:
 					hall.deserialize(data)
 				else:
 					print("\rSystem message\n" + data + "\n[Me] ")
-
-
-			else :
+			else:
 				# user entered a message
 				msg = sys.stdin.readline()
-				s.send(str.encode(msg))
+				s.send(msg.encode())
 				sys.stdout.write('[Me] '); sys.stdout.flush()
 
 if __name__ == "__main__":
 	try:
 		if(len(sys.argv) < 3):
-			print('Usage : python client.py hostname')
+			print('Usage : python client.py hostname username')
 			sys.exit()
 
-		sys.exit(chat_client(sys.argv[1], 1234))
+		#name = input('Enter username: ')
+
+		sys.exit(chat_client(sys.argv[1], 1234, sys.argv[2]))
 	except KeyboardInterrupt:
-		print('Interrupted')
+		print('\nInterrupted')
 		sys.exit(0)

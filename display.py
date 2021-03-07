@@ -108,7 +108,7 @@ class MainView(Frame):
 	def help(self, a):
 		self.model.help = True
 		self.model.map = self.model.hall.help
-		self._map_view.text = self.model.map
+		self._map_view.value = self.model.map
 
 qd = False
 def _close(a):

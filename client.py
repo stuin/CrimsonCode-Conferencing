@@ -83,6 +83,7 @@ def run_client(host, port, name):
 					if user.name == name and model.me == None:
 						model.add_message(name + ' connected to server')
 						model.me = user
+						user.avatar = '@'
 						waiting -= 1
 					model.refresh()
 				elif data[0] == "L":

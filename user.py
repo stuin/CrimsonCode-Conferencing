@@ -11,13 +11,13 @@ class User(object):
 		if pos is None:
 			data = ast.literal_eval(data)
 			self.name = data[0]
-			self.avatar = "@"
+			self.avatar = "&"
 			self.room = data[1]
 			self.pos = data[2]
 			self.index = data[3]
 		else:
 			self.name = data
-			self.avatar = "@"
+			self.avatar = "&"
 			self.room = 0
 			self.pos = pos
 			self.index = i

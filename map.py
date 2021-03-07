@@ -16,8 +16,8 @@ class Map(object):
 		self.content = ''
 		if content:
 			self.width = max([ len(s) for s in content ])
-			content = [(x + ' ' * (self.width - len(x))) for x in content]
-			self.content = ''.join(content)
+			content = [(x[:-1] + ' ' * (self.width - len(x))) for x in content]
+			self.content = '\n'.join(content)
 			self.startPos = self.content.find('>') + 1
 			self.help = ''.join(helpfile)
 
@@ -41,7 +41,7 @@ class Map(object):
 		if self.content[to] in self.blocked:
 			return False
 
-		if self.content[user.pos] == '-' and str(user.pos) in self.doors:
+		if self.content[user.pos] == '-' and self.content[to] != '-' and str(user.pos) in self.doors:
 			r = user.room
 			if to < user.pos:
 				user.room = self.doors[str(user.pos)][1]
@@ -81,22 +81,24 @@ class Map(object):
 			'Side Hallway', 'Room 1', 'Room 2', 'Room 3'
 		]
 		self.pinned = [
-			'Users start here', 'For big presentations', 'URL goes here',
+			'Users enter here', 'For big presentations', 'Space for a url',
 			'Passage to smaller rooms', 'Example topic 1', 'Example topic 2', 'Example topic 3'
 		]
 
 		# large doors
-		for x in range (13, 16):
+		for x in range (9, 12):
 			self.add_door(x, 11, 0, 1)
-		for x in range (20, 23):
+		for x in range (16, 19):
 			self.add_door(x, 16, 0, 2)
-		for x in range (27, 30):
+		for x in range (25, 28):
 			self.add_door(x, 16, 0, 3)
 
 		# side rooms
-		self.add_door(30, 14, 4, 3)
-		self.add_door(30, 10, 5, 3)
-		self.add_door(30,  6, 6, 3)
+		self.add_door(28, 14, 4, 3)
+		self.add_door(28, 10, 5, 3)
+		self.add_door(28,  6, 6, 3)
+		self.add_door(21,  2, 3, 1)
+		self.add_door(21,  3, 3, 1)
 
 
 

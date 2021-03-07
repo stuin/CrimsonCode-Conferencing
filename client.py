@@ -87,9 +87,10 @@ def run_client(host, port, name):
 					model.refresh()
 				elif data[0] == "L":
 					# remove user
-					del model.users[data[1:]]
+					name = model.users[int(data[1:])].name
+					del model.users[int(data[1:])]
 					model.refresh()
-					model.add_message("<%s Left the server>" % data[1:])
+					model.add_message("<%s Left the server>" % name)
 				elif data[0] == "D" and waiting:
 					# load map details
 					model.hall.deserialize(data)

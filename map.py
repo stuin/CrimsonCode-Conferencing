@@ -7,8 +7,6 @@ class DIRECTION(IntEnum):
 	LEFT = -1
 	RIGHT = 1
 
-color_default = "${2,2,0}"
-
 class Map(object):
 	def __init__(self, content=None, helpfile=None):
 		self.doors = {}

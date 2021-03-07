@@ -4,6 +4,7 @@ import sys
 import socket
 import threading
 import time
+import json
 
 from user import User
 from model import DataModel
@@ -89,17 +90,24 @@ def run_client(host, port, name):
 					model.refresh()
 				elif data[0] == "L":
 					# remove user
-					name = model.users[int(data[1:])].name
-					del model.users[int(data[1:])]
+					i = int(data[1:])
+					if i == model.me.index:
+						model.add_message('<Disconnected>')
+						model.quit = True
+						return
 
-					if name == model.me.name:
-						break
+					name = model.users[i].name
+					del model.users[i]
 					model.refresh()
 					model.add_message("<%s Left the server>" % name)
-
 				elif data[0] == "D" and waiting:
 					# load map details
-					model.hall.deserialize(data)
+					try:
+						model.hall.deserialize(data)
+					except json.decoder.JSONDecodeError:
+						print("Network error: please close and try again")
+						model.quit = True
+						return
 					waiting -= 1
 		except socket.timeout:
 			while not model.send.empty():

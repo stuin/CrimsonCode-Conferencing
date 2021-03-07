@@ -81,7 +81,7 @@ class Map(object):
 			'Side Hallway', 'Room 1', 'Room 2', 'Room 3', "Room 4"
 		]
 		self.pinned = [
-			'Users enter here', 'For big presentations', 'Space for a url',
+			'Users enter here', 'https://github.com/stuin/CrimsonCode-Conferencing', 'https://www.linkedin.com/in/stuin01/',
 			'Passage to smaller rooms', 'Example topic 1', 'Example topic 2', 'Example topic 3', 'Example topic 4'
 		]
 

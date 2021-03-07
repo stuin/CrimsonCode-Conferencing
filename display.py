@@ -4,6 +4,8 @@ from asciimatics.screen import Screen
 from asciimatics.parsers import AsciimaticsParser
 from asciimatics.exceptions import ResizeScreenError, NextScene, StopApplication
 
+import webbrowser
+
 from model import DataModel
 from map import DIRECTION
 from user import validreg
@@ -25,12 +27,14 @@ class MainView(Frame):
 			'a': (self.model.add_move, DIRECTION.LEFT),
 			'd': (self.model.add_move, DIRECTION.RIGHT),
 			'h': (self.help, 0),
+			'o': (self.open, 0),
 			'q': (self.quit, 0)
 		}
 		self.cmap = {
 			'kick': self.kick,
 			'say': self.say,
 			'help': self.help,
+			'open': self.open,
 			'quit': self.quit
 		}
 
@@ -119,6 +123,9 @@ class MainView(Frame):
 		self.model.help = True
 		self.model.map = self.model.hall.help
 		self._map_view.value = self.model.map
+
+	def open(self, a):
+		webbrowser.open(self.model.hall.pinned[self.model.me.room])
 
 	def quit(self, a):
 		if self.model.quit or qd:

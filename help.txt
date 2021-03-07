@@ -2,6 +2,7 @@ Controls:
 - tab = switch between chat and move mode
 - wasd = basic movement
 - h/help = show this screen
+- o/open = open the room pin in a web browser
 - q/quit = close game
 
 Chat mode:

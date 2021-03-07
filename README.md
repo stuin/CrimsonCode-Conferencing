@@ -2,6 +2,8 @@
 
 A python client and server system for meeting and chatting in a text based virtual environment.
 
+There is currently a demo server running at mine.stuintech.com
+
 ### Running the server
 ```
 python server.py

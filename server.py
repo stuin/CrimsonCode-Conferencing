@@ -43,7 +43,6 @@ def run_server():
 				sockfd, addr = server_socket.accept()
 				SOCKET_LIST.append(sockfd)
 				print("Client (%s, %s) connected" % addr)
-				sockfd.send(("M" + hall.content).encode())
 				sockfd.send(hall.serialize())
 
 			# a message from a client, not a new connection

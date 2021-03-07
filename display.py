@@ -55,7 +55,3 @@ def start_display(map, users):
 			return
 		except ResizeScreenError as e:
 			last_scene = e.scene
-
-def test(map, users):
-	model.setup(map, users)
-	print(model.get_users())

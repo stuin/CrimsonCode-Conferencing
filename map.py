@@ -8,14 +8,12 @@ class DIRECTION(IntEnum):
 	RIGHT = 1
 
 class Map(object):
-	def __init__(self, content):
+	def __init__(self, content=None):
 		self.doors = {}
 		self.rooms = []
 		self.blocked = ['#', '>']
-		self.width = max([ len(s) for s in content ])
-		content = [(x + ' ' * (self.width - len(x))) for x in content]
-		self.content = ''.join(content)
-		self.startPos = self.content.find('>') + 1
+		if content:
+			self.read_map(content)
 
 	def pos(self, x, y):
 		return (y * self.width + x)
@@ -49,12 +47,19 @@ class Map(object):
 		return False
 
 	def serialize(self):
-		return ('D' + str(self.doors) + '\n' + str(self.rooms)).encode()
+		return ('D' + str(self.doors) + '$' + str(self.rooms) + '$' + self.content).encode()
 
 	def deserialize(self, data):
-		data = data[1:].split('\n')
+		data = data[1:].split('$')
 		self.doors = ast.literal_eval(data[0])
 		self.rooms = list(data[1])
+		self.read_map(data[2])
+
+	def read_map(self, content):
+		self.width = max([ len(s) for s in content ])
+		content = [(x + ' ' * (self.width - len(x))) for x in content]
+		self.content = ''.join(content)
+		self.startPos = self.content.find('>') + 1
 
 	# default map setup
 	def setup_1(self):

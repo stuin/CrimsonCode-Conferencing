@@ -15,13 +15,15 @@ class User(object):
 			self.room = data[1]
 			self.pos = data[2]
 			self.index = data[3]
+			self.op = data[4]
 		else:
 			self.name = data
 			self.avatar = "&"
 			self.room = 0
 			self.pos = pos
 			self.index = i
+			self.op = False
 			i += 1
 
 	def serialize(self):
-		return str([self.name, self.room, self.pos, self.index])
+		return str([self.name, self.room, self.pos, self.index, self.op])

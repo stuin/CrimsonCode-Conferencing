@@ -70,11 +70,15 @@ def run_server():
 						if addr in all_users.keys():
 							del all_users[addr]
 
-						if not validreg.fullmatch(user.name + "\n") or user.name in [ u.name for u in all_users.values() ]:
+						if not validreg.fullmatch(user.name + "\n") or user.name in [ u.name for u in all_users.values() ] or user.name == 'SERVER':
 							sockfd.send("N$".encode())
 						else:
 							user.socket = sockfd
 							all_users[addr] = user
+
+							if addr[0] == '127.0.0.1':
+								user.op = True
+								print("Promoted (%s, %s) to op" % addr)
 
 							print("Client (%s, %s) set name to" % addr, user.name)
 							for u in all_users.values():

@@ -9,4 +9,4 @@ Messages can be sent to the other users in the meeting room; containing letters,
 
 Move mode:
 Single letter commands can be used to move your @ character around.
-To close this page, press any key while in move mode.
+To close the page, move in any direction.

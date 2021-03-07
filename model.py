@@ -52,9 +52,10 @@ class DataModel(object):
 
 	def send_message(self, message):
 		self.add_message("[%s] " % self.me.name + message)
-		self.send.put(message + "$")
+		self.send.put("C%d&[%s] %s$" % (self.me.room, self.me.name, message))
 
 	def add_move(self, direction):
+		self.help = False
 		if self.me and self.hall.move(self.me, direction):
 			if self.me.changed:
 				self.add_message('<Moved to %s>' % self.hall.rooms[self.me.room])

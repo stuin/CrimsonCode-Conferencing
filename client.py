@@ -98,7 +98,7 @@ def run_client(host, port, name):
 					waiting -= 1
 		except socket.timeout:
 			while not model.send.empty():
-				sock.send(("C%d&[%s] %s$" % (model.me.room, name, model.send.get())).encode())
+				sock.send(model.send.get().encode())
 			if model.moved:
 				sock.send(("M%d&%d&%d$" % (model.me.index, model.me.pos, model.me.room)).encode())
 	model.add_message('<Disconnected>')

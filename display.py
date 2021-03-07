@@ -28,8 +28,10 @@ class MainView(Frame):
 			'q': (self.quit, 0)
 		}
 		self.cmap = {
-			'help\n': (self.help, 0),
-			'quit\n': (self.quit, 0)
+			'kick': self.kick,
+			'say': self.say,
+			'help': self.help,
+			'quit': self.quit
 		}
 
 		# main widgets
@@ -84,9 +86,9 @@ class MainView(Frame):
 	def _check_input(self):
 		if len(self._input_box.value) > 1:
 			if validreg.match(self._input_box.value):
-				cmd = self._input_box.value.lower()
-				if cmd in self.cmap:
-					self.cmap[cmd][0](self.cmap[cmd][1])
+				cmd = self._input_box.value.lower()[:-1].split(' ')
+				if cmd[0] in self.cmap:
+					self.cmap[cmd[0]](cmd[1:])
 				else:
 					self.model.send_message(self._input_box.value)
 				self._input_box.value = ""
@@ -95,23 +97,34 @@ class MainView(Frame):
 		self._reset()
 
 	def _check_movement(self):
-		self.model.help = False
-		if len(self._move_box.value) > 0 and self._move_box.value != "move: ":
+		if len(self._move_box.value) == 7 and self._move_box.value != "move: ":
 			button = self._move_box.value[6].lower()
 			if button in self.bmap:
 				self.bmap[button][0](self.bmap[button][1])
 		self._reset()
+
+	def kick(self, p):
+		if self.model.me.op and p[0] != self.model.me.name:
+			for user in self.model.users:
+				if p[0] == user.name:
+					self.model.add_message("{Kicked %s}" % p[0])
+					self.send.put('OK%d$' % user.index)
+
+	def say(self, p):
+		if self.model.me.op:
+			self.model.add_message("[SERVER] " + ' '.join(p))
+			self.send.put("C-1&[SERVER] %s$" % ' '.join(p))
+
+	def help(self, a):
+		self.model.help = True
+		self.model.map = self.model.hall.help
+		self._map_view.value = self.model.map
 
 	def quit(self, a):
 		if self.model.quit or qd:
 			quit(0)
 		else:
 			raise NextScene("Quit")
-
-	def help(self, a):
-		self.model.help = True
-		self.model.map = self.model.hall.help
-		self._map_view.value = self.model.map
 
 qd = False
 def _close(a):

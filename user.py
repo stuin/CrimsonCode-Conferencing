@@ -11,17 +11,17 @@ class User(object):
 		if pos is None:
 			data = ast.literal_eval(data)
 			self.name = data[0]
-			self.avatar = data[1]
-			self.room = data[2]
-			self.pos = data[3]
-			self.index = data[4]
+			self.avatar = "@"
+			self.room = data[1]
+			self.pos = data[2]
+			self.index = data[3]
 		else:
 			self.name = data
-			self.avatar = '@'
+			self.avatar = "@"
 			self.room = 0
 			self.pos = pos
 			self.index = i
 			i += 1
 
 	def serialize(self):
-		return str([self.name, self.avatar, self.room, self.pos, self.index])
+		return str([self.name, self.room, self.pos, self.index])

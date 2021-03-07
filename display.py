@@ -1,6 +1,7 @@
 from asciimatics.widgets import *
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
+from asciimatics.parsers import AsciimaticsParser
 from asciimatics.exceptions import ResizeScreenError, NextScene, StopApplication
 
 from model import DataModel
@@ -16,6 +17,7 @@ class MainView(Frame):
 									   can_scroll=False,
 									   title="Crimson Conferences")
 		self.model = model
+		self.parser = AsciimaticsParser()
 		self.set_theme("green")
 		self.bmap = {
 			'w': (self.model.add_move, DIRECTION.UP),
@@ -41,8 +43,8 @@ class MainView(Frame):
 		self._message_list.disabled = True
 		self._message_list.custom_colour = "label"
 		self._input_box = TextBox(1, as_string=True, on_change=self._check_input)
-		self._move_box = TextBox(1, as_string=True, on_change=self._check_movement)
-		self._map_view = Label(model.map, Widget.FILL_FRAME)
+		self._move_box = Text(on_change=self._check_movement)
+		self._map_view = TextBox(Widget.FILL_FRAME, as_string=True, line_wrap=True)
 		self._map_view.disabled = True
 		self._map_view.custom_colour = "label"
 		self._room_label = Label(model.room, 1)
@@ -67,13 +69,13 @@ class MainView(Frame):
 		self._layout = Layout
 		self.fix()
 		self.model.log_height = self._message_list._h
-		self._move_box.value = "move: "
 
 	def _reset(self):
 		if self.model.quit:
 			quit(0)
 		self.model.refresh()
-		self._map_view.text = self.model.map
+		self._move_box.value = "move: "
+		self._map_view.value = self.model.map
 		self._room_label.text = self.model.room
 		self._users_list.options = self.model.user_list
 		self._message_list.options = self.model.log
@@ -93,7 +95,6 @@ class MainView(Frame):
 		self.model.help = False
 		if len(self._move_box.value) > 0 and self._move_box.value != "move: ":
 			button = self._move_box.value[6].lower()
-			self._move_box.value = "move: "
 			if button in self.bmap:
 				self.bmap[button][0](self.bmap[button][1])
 		self._reset()

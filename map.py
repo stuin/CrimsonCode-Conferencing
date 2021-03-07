@@ -7,6 +7,8 @@ class DIRECTION(IntEnum):
 	LEFT = -1
 	RIGHT = 1
 
+color_default = "${2,2,0}"
+
 class Map(object):
 	def __init__(self, content=None, helpfile=None):
 		self.doors = {}
@@ -58,7 +60,7 @@ class Map(object):
 	def draw(self, users):
 		output = self.content
 		for u in users.values():
-			output = output[:u.pos] + u.avatar[0] + output[u.pos + 1:]
+			output = output[:u.pos] + u.avatar + output[u.pos + 1:]
 		return output
 
 	def serialize(self):
@@ -78,11 +80,11 @@ class Map(object):
 	def setup_1(self):
 		self.rooms = [
 			'Entrance Hall', 'Main Theatre', 'Side Theatre',
-			'Side Hallway', 'Room 1', 'Room 2', 'Room 3'
+			'Side Hallway', 'Room 1', 'Room 2', 'Room 3', "Room 4"
 		]
 		self.pinned = [
 			'Users enter here', 'For big presentations', 'Space for a url',
-			'Passage to smaller rooms', 'Example topic 1', 'Example topic 2', 'Example topic 3'
+			'Passage to smaller rooms', 'Example topic 1', 'Example topic 2', 'Example topic 3', 'Example topic 4'
 		]
 
 		# large doors
@@ -97,6 +99,7 @@ class Map(object):
 		self.add_door(28, 14, 4, 3)
 		self.add_door(28, 10, 5, 3)
 		self.add_door(28,  6, 6, 3)
+		self.add_door(24,  6, 3, 7)
 		self.add_door(21,  2, 3, 1)
 		self.add_door(21,  3, 3, 1)
 

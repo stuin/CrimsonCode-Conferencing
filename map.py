@@ -1,4 +1,4 @@
-import ast
+import json
 from enum import IntEnum
 
 class DIRECTION(IntEnum):
@@ -8,9 +8,10 @@ class DIRECTION(IntEnum):
 	RIGHT = 1
 
 class Map(object):
-	def __init__(self, content=None):
+	def __init__(self, content=None, helpfile=None):
 		self.doors = {}
 		self.rooms = []
+		self.pinned = []
 		self.blocked = ['#', '>']
 		self.content = ''
 		if content:
@@ -18,6 +19,7 @@ class Map(object):
 			content = [(x + ' ' * (self.width - len(x))) for x in content]
 			self.content = ''.join(content)
 			self.startPos = self.content.find('>') + 1
+			self.help = ''.join(helpfile)
 
 	def pos(self, x, y):
 		return (y * self.width + x)
@@ -39,12 +41,12 @@ class Map(object):
 		if self.content[to] in self.blocked:
 			return False
 
-		if self.content[user.pos] == '-' and user.pos in self.doors:
+		if self.content[user.pos] == '-' and str(user.pos) in self.doors:
 			r = user.room
 			if to < user.pos:
-				user.room = self.doors[user.pos][1]
+				user.room = self.doors[str(user.pos)][1]
 			else:
-				user.room = self.doors[user.pos][0]
+				user.room = self.doors[str(user.pos)][0]
 			if user.room != r:
 				user.changed = 2
 			user.pos = to
@@ -60,21 +62,28 @@ class Map(object):
 		return output
 
 	def serialize(self):
-		return ('D' + str(self.doors) + '&' + str(self.rooms) + '&' + self.content + "$").encode()
+		return ('D' + json.dumps(self.__dict__) + "$").encode()
 
 	def deserialize(self, data):
-		data = data[1:].split('&')
-		self.doors = ast.literal_eval(data[0])
-		self.rooms = ast.literal_eval(data[1])
-		self.width = data[2].find('\n') + 1
-		self.content = data[2]
-		self.startPos = self.content.find('>') + 1
+		data = json.loads(data[1:])
+		self.doors = data['doors']
+		self.rooms = data['rooms']
+		self.pinned = data['pinned']
+		self.width = data['width']
+		self.content = data['content']
+		self.startPos = data['startPos']
+		self.help = data['help']
 
 	# default map setup
 	def setup_1(self):
 		self.rooms = [
 			'Entrance Hall', 'Main Theatre', 'Side Theatre',
-			'Side Hallway', 'Room 1', 'Room 2', 'Room 3']
+			'Side Hallway', 'Room 1', 'Room 2', 'Room 3'
+		]
+		self.pinned = [
+			'Users start here', 'For big presentations', 'URL goes here',
+			'Passage to smaller rooms', 'Example topic 1', 'Example topic 2', 'Example topic 3'
+		]
 
 		# large doors
 		for x in range (13, 16):

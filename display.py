@@ -22,9 +22,11 @@ class MainView(Frame):
 			's': (self.model.add_move, DIRECTION.DOWN),
 			'a': (self.model.add_move, DIRECTION.LEFT),
 			'd': (self.model.add_move, DIRECTION.RIGHT),
+			'h': (self.help, 0),
 			'q': (self.quit, 0)
 		}
 		self.cmap = {
+			'help\n': (self.help, 0),
 			'quit\n': (self.quit, 0)
 		}
 
@@ -32,7 +34,7 @@ class MainView(Frame):
 		self._me_label = Label(model.me.name, 1)
 		self._me_label.disabled = True
 		self._me_label.custom_colour = "label"
-		self._users_list = ListBox(10, model.userlist)
+		self._users_list = ListBox(10, model.user_list)
 		self._users_list.disabled = True
 		self._users_list.custom_colour = "label"
 		self._message_list = ListBox(Widget.FILL_FRAME, model.log)
@@ -40,12 +42,15 @@ class MainView(Frame):
 		self._message_list.custom_colour = "label"
 		self._input_box = TextBox(1, as_string=True, on_change=self._check_input)
 		self._move_box = TextBox(1, as_string=True, on_change=self._check_movement)
-		self._map_view = Label(model.map, model.get_height())
+		self._map_view = Label(model.map, Widget.FILL_FRAME)
 		self._map_view.disabled = True
 		self._map_view.custom_colour = "label"
+		self._room_label = Label(model.room, 1)
+		self._room_label.disabled = True
+		self._room_label.custom_colour = "label"
 
 		# arrangle main columns
-		layout = Layout([5,1, 5])
+		layout = Layout([4,1, 6])
 		self.add_layout(layout)
 		layout.add_widget(self._me_label, 0)
 		layout.add_widget(self._users_list, 0)
@@ -56,6 +61,7 @@ class MainView(Frame):
 		layout.add_widget(self._move_box, 0)
 		layout.add_widget(VerticalDivider(Widget.FILL_FRAME), 1)
 		layout.add_widget(self._map_view, 2)
+		layout.add_widget(self._room_label, 2)
 
 		# Finalization
 		self._layout = Layout
@@ -68,7 +74,8 @@ class MainView(Frame):
 			quit(0)
 		self.model.refresh()
 		self._map_view.text = self.model.map
-		self._users_list.options = self.model.userlist
+		self._room_label.text = self.model.room
+		self._users_list.options = self.model.user_list
 		self._message_list.options = self.model.log
 		self.model.log_height = self._message_list._h
 
@@ -83,6 +90,7 @@ class MainView(Frame):
 		self._reset()
 
 	def _check_movement(self):
+		self.model.help = False
 		if len(self._move_box.value) > 0 and self._move_box.value != "move: ":
 			button = self._move_box.value[6].lower()
 			self._move_box.value = "move: "
@@ -95,6 +103,11 @@ class MainView(Frame):
 			quit(0)
 		else:
 			raise NextScene("Quit")
+
+	def help(self, a):
+		self.model.help = True
+		self.model.map = self.model.hall.help
+		self._map_view.text = self.model.map
 
 qd = False
 def _close(a):

@@ -23,7 +23,9 @@ def run_server():
 	# set up meeting hall
 	mapfile=open("map.txt", "r")
 	mapdata=mapfile.readlines()
-	hall = Map(mapdata)
+	helpfile=open("help.txt", "r")
+	helpdata=helpfile.readlines()
+	hall = Map(mapdata, helpdata)
 	hall.setup_1()
 
 	# prepare list for users

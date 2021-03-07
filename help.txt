@@ -1,0 +1,12 @@
+Controls:
+- tab = switch between chat and move mode
+- wasd = basic movement
+- h/help = show this screen
+- q/quit = close game
+
+Chat mode:
+Messages can be sent to the other users in the meeting room; containing letters, numbers, spaces, and _?!,./@ symbols. Simple commands like help and quit can also be used.
+
+Move mode:
+Single letter commands can be used to move your character around.
+To close this page, press any key while in move mode.

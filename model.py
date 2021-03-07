@@ -12,18 +12,26 @@ class DataModel(object):
 
 		# directly accessed lists
 		self.log = []
-		self.userlist = []
+		self.user_list = []
 		self.map = ''
+		self.room = ''
+		self.pinned = ''
 
 		# boolean flags
 		self.moved = False
+		self.help = False
 		self.quit = False
 
 	def refresh(self):
 		user_room = []
 		user_other = []
-		self.map = self.hall.draw(self.users)
+		if not self.help:
+			self.map = self.hall.draw(self.users)
+
+		# list users
 		if self.me:
+			r = self.me.room
+			self.room = self.hall.rooms[r] + ": " + self.hall.pinned[r]
 			for user in self.users.values():
 				if user == self.me:
 					pass
@@ -31,7 +39,7 @@ class DataModel(object):
 					user_room.append((user.name, user.index))
 				else:
 					user_other.append((user.name, user.index))
-			self.userlist = user_room + user_other
+			self.user_list = user_room + user_other
 
 	def get_height(self):
 		return len(self.hall.content.split('\n'))

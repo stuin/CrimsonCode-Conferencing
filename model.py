@@ -52,7 +52,7 @@ class DataModel(object):
 
 	def send_message(self, message):
 		self.add_message("[%s] " % self.me.name + message)
-		self.send.put("C%d&[%s] %s$" % (self.me.room, self.me.name, message))
+		self.send.put("C%d&[%s] %s\n$" % (self.me.room, self.me.name, message))
 
 	def add_move(self, direction):
 		self.help = False
